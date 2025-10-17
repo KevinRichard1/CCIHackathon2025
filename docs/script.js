@@ -1,45 +1,64 @@
 (() => {
   const form = document.getElementById('grantForm');
   const preview = document.getElementById('preview');
-  const saveLocalBtn = document.getElementById('saveLocal');
-  const exportAllBtn = document.getElementById('exportAll');
 
-  const STORAGE_KEY = 'grant_app_submissions_v1';
+  const STORAGE_KEY = 'grant_app_submissions_v2';
 
-  function formToObject(formEl) {
+  function parseFormData(formEl) {
     const fd = new FormData(formEl);
+
+    const getFileName = (inputName) => {
+      const file = fd.get(inputName);
+      return file && file.name ? file.name : null;
+    };
+
     return {
       id: generateId(),
       submittedAt: new Date().toISOString(),
       applicant: {
-        name: fd.get('applicantName') || null,
-        email: fd.get('email') || null,
-        organization: fd.get('organization') || null
+        name: fd.get('applicantName'),
+        email: fd.get('email'),
+        phone: fd.get('phone'),
+      },
+      organization: {
+        name: fd.get('organizationName'),
+        type: fd.get('organizationType'),
+        website: fd.get('organizationWebsite'),
+        taxId: fd.get('organizationTaxId'),
       },
       grant: {
-        id: fd.get('grantId') || null,
-        title: fd.get('grantTitle') || null,
-        amountRequested: fd.get('amountRequested') ? Number(fd.get('amountRequested')) : null,
-        matchRequired: fd.get('matchRequired') === 'true'
+        id: fd.get('grantId'),
+        title: fd.get('grantTitle'),
+        amountRequested: parseFloat(fd.get('amountRequested')),
+        matchRequired: fd.get('matchRequired') === 'true',
+        startDate: fd.get('startDate') || null,
+        endDate: fd.get('endDate') || null,
       },
-      proposal: {
-        summary: fd.get('proposalSummary') || null,
-        categories: parseCommaList(fd.get('categories'))
-      }
+      project: {
+        executiveSummary: fd.get('executiveSummary'),
+        statementOfNeed: fd.get('statementOfNeed'),
+        goals: fd.get('projectGoals'),
+        implementationPlan: fd.get('implementationPlan'),
+        evaluationPlan: fd.get('evaluationPlan'),
+      },
+      budget: {
+        total: parseFloat(fd.get('totalBudget')) || null,
+        justification: fd.get('budgetJustification'),
+      },
+      attachments: {
+        proposalFile: getFileName('proposalFile'),
+        budgetFile: getFileName('budgetFile'),
+      },
+      certification: {
+        certified: fd.get('certify') === 'on',
+        signature: fd.get('signature'),
+        date: fd.get('signatureDate'),
+      },
     };
   }
 
-  function parseCommaList(s) {
-    if (!s) return [];
-    return s.split(',').map(x => x.trim()).filter(Boolean);
-  }
-
   function generateId() {
-    return 'SUB-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
-  }
-
-  function showPreview(obj) {
-    preview.textContent = JSON.stringify(obj, null, 2);
+    return 'APP-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 6);
   }
 
   function readSubmissions() {
@@ -51,65 +70,30 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
   }
 
-  function downloadObjectAsJson(obj, filename) {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
-    const dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", filename);
-    document.body.appendChild(dlAnchor);
-    dlAnchor.click();
-    dlAnchor.remove();
+  function showPreview(data) {
+    preview.textContent = JSON.stringify(data, null, 2);
   }
 
-  function sendSuccessMessage(obj) {
-    const successMessage = {
+  function sendSuccessMessage(data) {
+    const message = {
       status: "success",
-      message: "Grant application submitted successfully.",
-      id: obj.id,
-      timestamp: obj.submittedAt
+      message: "Application submitted successfully.",
+      id: data.id,
+      timestamp: data.submittedAt,
     };
-
-    // For AI agents listening to postMessage
-    window.parent?.postMessage(successMessage, "*");
-
-    // Also log to console
-    console.log("✅ Submission Success:", successMessage);
+    window.parent?.postMessage(message, "*");
+    console.log("✅ Submission:", message);
   }
 
-  form.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    const obj = formToObject(form);
-    showPreview(obj);
-
-    // Save to localStorage
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = parseFormData(form);
     const all = readSubmissions();
-    all.push(obj);
+    all.push(data);
     writeSubmissions(all);
-
-    // Trigger download
-    downloadObjectAsJson(obj, `${obj.id}.json`);
-
-    // Send agent message
-    sendSuccessMessage(obj);
-
-    alert('✅ Application submitted. Downloaded JSON and saved to browser.');
+    showPreview(data);
+    sendSuccessMessage(data);
+    alert('✅ Application submitted and saved locally.');
     form.reset();
-  });
-
-  saveLocalBtn.addEventListener('click', () => {
-    const obj = formToObject(form);
-    const all = readSubmissions();
-    all.push(obj);
-    writeSubmissions(all);
-    showPreview(obj);
-    sendSuccessMessage(obj);
-    alert('💾 Saved to browser (localStorage).');
-    form.reset();
-  });
-
-  exportAllBtn.addEventListener('click', () => {
-    const all = readSubmissions();
-    if (!all.length) return alert('No saved submissions.');
-    downloadObjectAsJson(all, `grant_submissions_export.json`);
   });
 })();

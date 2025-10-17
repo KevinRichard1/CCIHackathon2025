@@ -3,77 +3,145 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Grant Application — Demo</title>
+  <title>Grant Application Portal</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="container">
-    <h1>Grant Application</h1>
+    <h1>Grant Application Portal</h1>
 
     <form id="grantForm">
+
+      <!-- SECTION 1: Applicant Info -->
       <fieldset>
-        <legend>Applicant</legend>
-        <label>Name
+        <legend>Applicant Information</legend>
+        <label>Full Name
           <input type="text" name="applicantName" required />
         </label>
-
-        <label>Email
+        <label>Email Address
           <input type="email" name="email" required />
         </label>
-
-        <label>Organization
-          <input type="text" name="organization" />
+        <label>Phone Number
+          <input type="tel" name="phone" required />
         </label>
       </fieldset>
 
+      <!-- SECTION 2: Organization Info -->
       <fieldset>
-        <legend>Grant Info</legend>
+        <legend>Organization Information</legend>
+        <label>Organization Name
+          <input type="text" name="organizationName" required />
+        </label>
+        <label>Organization Type
+          <select name="organizationType" required>
+            <option value="">-- Select --</option>
+            <option>Non-profit</option>
+            <option>University</option>
+            <option>Government</option>
+            <option>For-profit</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label>Organization Website
+          <input type="url" name="organizationWebsite" />
+        </label>
+        <label>Tax ID / EIN
+          <input type="text" name="organizationTaxId" />
+        </label>
+      </fieldset>
+
+      <!-- SECTION 3: Grant Info -->
+      <fieldset>
+        <legend>Grant Details</legend>
         <label>Grant ID
-          <input type="text" name="grantId" placeholder="e.g. 1914979" />
+          <input type="text" name="grantId" required />
         </label>
-
         <label>Grant Title
-          <input type="text" name="grantTitle" />
+          <input type="text" name="grantTitle" required />
         </label>
-
-        <label>Amount Requested (USD)
-          <input type="number" name="amountRequested" min="0" />
+        <label>Funding Amount Requested (USD)
+          <input type="number" name="amountRequested" min="0" required />
         </label>
-
-        <label>Match Required
+        <label>Match Required?
           <select name="matchRequired">
             <option value="false">No</option>
             <option value="true">Yes</option>
           </select>
         </label>
+        <label>Proposed Start Date
+          <input type="date" name="startDate" />
+        </label>
+        <label>Proposed End Date
+          <input type="date" name="endDate" />
+        </label>
       </fieldset>
 
+      <!-- SECTION 4: Project Description -->
       <fieldset>
-        <legend>Proposal</legend>
-        <label>Summary
-          <textarea name="proposalSummary" rows="6" required></textarea>
+        <legend>Project Narrative</legend>
+        <label>Executive Summary
+          <textarea name="executiveSummary" rows="5" required></textarea>
         </label>
+        <label>Statement of Need
+          <textarea name="statementOfNeed" rows="5" required></textarea>
+        </label>
+        <label>Project Goals & Objectives
+          <textarea name="projectGoals" rows="5" required></textarea>
+        </label>
+        <label>Implementation Plan
+          <textarea name="implementationPlan" rows="6"></textarea>
+        </label>
+        <label>Evaluation Plan
+          <textarea name="evaluationPlan" rows="6"></textarea>
+        </label>
+      </fieldset>
 
-        <label>Categories (comma separated)
-          <input type="text" name="categories" placeholder="Health & Human Services,Research" />
+      <!-- SECTION 5: Budget -->
+      <fieldset>
+        <legend>Budget</legend>
+        <label>Total Budget
+          <input type="number" name="totalBudget" min="0" />
+        </label>
+        <label>Budget Justification
+          <textarea name="budgetJustification" rows="4"></textarea>
+        </label>
+      </fieldset>
+
+      <!-- SECTION 6: Attachments -->
+      <fieldset>
+        <legend>Attachments (Optional)</legend>
+        <label>Upload Proposal (PDF)
+          <input type="file" name="proposalFile" accept="application/pdf" />
+        </label>
+        <label>Upload Budget Document (XLSX/PDF)
+          <input type="file" name="budgetFile" accept=".xlsx,application/pdf" />
+        </label>
+      </fieldset>
+
+      <!-- SECTION 7: Certification -->
+      <fieldset>
+        <legend>Certification</legend>
+        <label>
+          <input type="checkbox" name="certify" required />
+          I certify that the information provided is true and complete to the best of my knowledge.
+        </label>
+        <label>Electronic Signature
+          <input type="text" name="signature" required />
+        </label>
+        <label>Date Signed
+          <input type="date" name="signatureDate" required />
         </label>
       </fieldset>
 
       <div class="actions">
-        <button type="submit">Create JSON & Download</button>
-        <button type="button" id="saveLocal">Save locally (browser)</button>
-        <button type="button" id="exportAll">Export all submissions (download)</button>
+        <button type="submit">Submit Application</button>
       </div>
     </form>
 
     <section id="output">
-      <h2>Submission Preview</h2>
-      <pre id="preview">Fill the form and submit to see JSON here.</pre>
+      <h2>Application JSON Preview</h2>
+      <pre id="preview">Waiting for submission...</pre>
     </section>
-
-    <footer>
-      <small>Demo — data is not submitted to a server unless you configure a backend.</small>
-    </footer>
   </main>
 
   <script src="script.js"></script>
