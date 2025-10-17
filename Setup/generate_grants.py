@@ -1,83 +1,78 @@
-import json
 import random
+import json
 from faker import Faker
-from datetime import datetime, timedelta
 
 fake = Faker()
 
-# Constants
-AGENCIES = [
-    "U.S. Agency for International Development (USAID)",
-    "National Institutes of Health (NIH)",
-    "Department of Education",
-    "National Science Foundation (NSF)",
-    "Department of Agriculture (USDA)",
-    "Department of Energy (DOE)"
+form_base_url = "https://kevinrichard1.github.io/CCIHackathon2025/index.html"
+
+funding_orgs = [
+    {
+        "id": "org001",
+        "name": "Health & Research Foundation",
+        "sector": "Health & Human Services",
+        "domain": "https://healthresearch.org",
+    },
+    {
+        "id": "org002",
+        "name": "Arts & Culture Trust",
+        "sector": "Arts & Culture",
+        "domain": "https://artsandculturetrust.org",
+    },
+    {
+        "id": "org003",
+        "name": "Environmental Action Network",
+        "sector": "Environmental Sustainability",
+        "domain": "https://environmentalaction.org",
+    },
+    {
+        "id": "org004",
+        "name": "Tech Innovation Fund",
+        "sector": "Technology & Innovation",
+        "domain": "https://techinnovationfund.org",
+    },
 ]
 
-CATEGORIES = [
-    "Health & Human Services", "Education", "Science and Technology",
-    "Environment", "Energy", "Community Development", "Arts and Culture"
-]
+def generate_grant(grant_id):
+    org = random.choice(funding_orgs)
 
-FUNDING_TYPES = ["Cooperative Agreement", "Grant", "Contract", "Other"]
-
-LOCATIONS = [
-    "Federal", "International", "California", "New York", "Texas",
-    "Florida", "Illinois", "Washington", "Colorado", "Ohio"
-]
-
-STATUS_OPTIONS = ["Posted", "Forecasted", "Rolling", "Closed", "Archived"]
-
-APPLICANTS = [
-    "Unrestricted", "Nonprofits", "For-profit organizations",
-    "Public housing authorities", "State governments", "Private institutions"
-]
-
-ACTIVITIES = ["Research and Development", "Training", "Technical Assistance"]
-
-def random_date(start_year=2020, end_year=2030):
-    start = datetime(start_year, 1, 1)
-    end = datetime(end_year, 12, 31)
-    return fake.date_between(start_date=start, end_date=end).isoformat() + "T00:00:00.000Z"
-
-def generate_grant(id):
     return {
-        "id": id,
-        "agency": random.choice(AGENCIES),
-        "applicationDueDate": random_date(),
-        "categories": [random.choice(CATEGORIES)],
+        "id": grant_id,
+        "agency": org["name"],
+        "applicationDueDate": fake.date_between(start_date="+30d", end_date="+90d").isoformat(),
+        "categories": [org["sector"]],
         "contactInformation": {
             "description": None,
-            "emailDescription": fake.job(),
+            "emailDescription": "Grants Office",
             "email": fake.email(),
             "name": None,
-            "phoneNumber": None
+            "phoneNumber": None,
         },
-        "description": fake.paragraph(nb_sentences=3),
+        "description": fake.paragraph(nb_sentences=5),
         "eligibility": {
-            "activities": [random.choice(ACTIVITIES)],
-            "applicants": [random.choice(APPLICANTS)]
+            "activities": ["Research and Development"],
+            "applicants": ["Unrestricted"],
         },
-        "estimatedAwardDate": random.choice([random_date(), None]),
-        "fundingAmount": random.choice([str(random.randint(10000, 1000000)), None, "0"]),
-        "fundingTypes": random.sample(FUNDING_TYPES, k=random.randint(1, 2)),
-        "howToApply": fake.paragraph(nb_sentences=2),
-        "website": fake.url(),
-        "locations": random.sample(LOCATIONS, k=random.randint(1, 3)),
+        "estimatedAwardDate": fake.date_between(start_date="+120d", end_date="+180d").isoformat(),
+        "fundingAmount": str(fake.random_int(min=50000, max=500000)),
+        "fundingTypes": [random.choice(["Grant", "Cooperative Agreement", "Contract"])],
+        "howToApply": "Submit via the online form.",
+        "website": f"{form_base_url}?grantId={grant_id}&orgId={org['id']}",
+        "locations": [random.choice(["Federal", "International", "California", "New York"])],
         "matchRequired": random.choice([True, False]),
-        "openDate": random_date(),
-        "otherCategory": random.choice(CATEGORIES),
-        "status": random.choice(STATUS_OPTIONS),
-        "title": fake.sentence(nb_words=6).rstrip("."),
-        "totalProgramFunding": random.choice([str(random.randint(50000, 5000000)), None, "0"]),
+        "openDate": fake.date_between(start_date="-30d", end_date="today").isoformat(),
+        "otherCategory": org["sector"],
+        "status": random.choice(["Posted", "Forecasted", "Rolling", "Closed"]),
+        "title": fake.catch_phrase(),
+        "totalProgramFunding": str(fake.random_int(min=100000, max=2000000)),
     }
 
-# Generate 100 grants
-grants = [generate_grant(i + 1) for i in range(100)]
+def generate_multiple_grants(n):
+    grants = [generate_grant(i) for i in range(1, n + 1)]
+    return grants
 
-# Write to file
-with open("fake_grants.json", "w") as f:
-    json.dump(grants, f, indent=2)
-
-print("✅ Generated 100 fake grant records in fake_grants.json")
+if __name__ == "__main__":
+    grants = generate_multiple_grants(100)
+    with open("grants.json", "w") as f:
+        json.dump(grants, f, indent=2)
+    print("Generated 100 grants and saved to grants.json")
