@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grant Application — Demo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Grant Application</h1>
+
+    <form id="grantForm">
+      <fieldset>
+        <legend>Applicant</legend>
+        <label>Name
+          <input type="text" name="applicantName" required />
+        </label>
+
+        <label>Email
+          <input type="email" name="email" required />
+        </label>
+
+        <label>Organization
+          <input type="text" name="organization" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Grant Info</legend>
+        <label>Grant ID
+          <input type="text" name="grantId" placeholder="e.g. 1914979" />
+        </label>
+
+        <label>Grant Title
+          <input type="text" name="grantTitle" />
+        </label>
+
+        <label>Amount Requested (USD)
+          <input type="number" name="amountRequested" min="0" />
+        </label>
+
+        <label>Match Required
+          <select name="matchRequired">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Proposal</legend>
+        <label>Summary
+          <textarea name="proposalSummary" rows="6" required></textarea>
+        </label>
+
+        <label>Categories (comma separated)
+          <input type="text" name="categories" placeholder="Health & Human Services,Research" />
+        </label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit">Create JSON & Download</button>
+        <button type="button" id="saveLocal">Save locally (browser)</button>
+        <button type="button" id="exportAll">Export all submissions (download)</button>
+      </div>
+    </form>
+
+    <section id="output">
+      <h2>Submission Preview</h2>
+      <pre id="preview">Fill the form and submit to see JSON here.</pre>
+    </section>
+
+    <footer>
+      <small>Demo — data is not submitted to a server unless you configure a backend.</small>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
