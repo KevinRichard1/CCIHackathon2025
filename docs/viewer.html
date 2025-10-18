@@ -1,41 +1,201 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>All Submissions</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grant Application Viewer</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f5f7fa;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .org-banner {
+      margin-bottom: 2rem;
+    }
+
+    .application-entry {
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .accordion-toggle {
+      background-color: var(--primary-color, #2e86ab);
+      color: white;
+      width: 100%;
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      outline: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .accordion-toggle:hover {
+      background-color: #1f5d7a;
+    }
+
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      background: #f9f9f9;
+      padding: 0 1rem;
+    }
+
+    .accordion-content.open {
+      padding: 1rem;
+      max-height: 1000px;
+    }
+
+    .accordion-content pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .org-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-right: 1rem;
+      border-radius: 8px;
+    }
+
+    .logo-placeholder {
+      width: 60px;
+      height: 60px;
+      background-color: #666;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+      margin-right: 1rem;
+    }
+  </style>
 </head>
 <body>
-  <main class="container">
-    <h1>Saved Grant Applications</h1>
-    <p>This page shows all submissions saved to localStorage.</p>
-
-    <div id="submissions"></div>
-  </main>
+  <div class="container">
+    <h1>Submitted Grant Applications</h1>
+    <div id="org-info"></div>
+    <div id="applicationsContainer"></div>
+  </div>
 
   <script>
-    const submissions = JSON.parse(localStorage.getItem('grant_app_submissions_v1') || '[]');
-    const container = document.getElementById('submissions');
+    const params = new URLSearchParams(window.location.search);
+    const orgId = params.get("orgId") || "org001";
 
-    if (submissions.length === 0) {
-      container.innerHTML = "<p><em>No submissions found.</em></p>";
-    } else {
-      submissions.forEach(app => {
-        const div = document.createElement('div');
-        div.style.border = '1px solid #ccc';
-        div.style.padding = '10px';
-        div.style.marginBottom = '10px';
-        div.innerHTML = `
-          <strong>ID:</strong> ${app.id}<br/>
-          <strong>Name:</strong> ${app.applicant.name}<br/>
-          <strong>Grant:</strong> ${app.grant.title}<br/>
-          <strong>Amount:</strong> $${app.grant.amountRequested}<br/>
-          <strong>Submitted:</strong> ${app.submittedAt}<br/>
-          <details><summary>Full JSON</summary><pre>${JSON.stringify(app, null, 2)}</pre></details>
+    let orgs = [];
+    let applications = [];
+
+    async function loadOrgs() {
+      const res = await fetch("orgs.json");
+      orgs = await res.json();
+    }
+
+    function renderOrgHeader(org) {
+      const container = document.getElementById("org-info");
+
+      const initials = org.name
+        .split(" ")
+        .map(word => word[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 3);
+
+      const logoHtml = org.logo
+        ? `<img src="${org.logo}" alt="${org.name} logo" class="org-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
+        : "";
+
+      const placeholderLogo = `
+        <div class="logo-placeholder" style="background-color: ${org.color}; display: ${org.logo ? "none" : "flex"};">
+          ${initials}
+        </div>
+      `;
+
+      container.innerHTML = `
+        <div class="org-banner" style="background-color:${org.color}; color:#fff; padding:1rem; border-radius:6px; display:flex; align-items:center;">
+          ${logoHtml}${placeholderLogo}
+          <div>
+            <h2>${org.name}</h2>
+            <p>${org.description}</p>
+          </div>
+        </div>
+      `;
+
+      document.body.style.setProperty('--primary-color', org.color);
+    }
+
+    function renderApplications(apps) {
+      const container = document.getElementById("applicationsContainer");
+      container.innerHTML = "";
+
+      if (apps.length === 0) {
+        container.innerHTML = "<p>No applications found.</p>";
+        return;
+      }
+
+      apps.forEach(app => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "application-entry";
+
+        const summary = document.createElement("button");
+        summary.className = "accordion-toggle";
+        summary.innerHTML = `
+          <span><strong>${app.applicantName || "Unnamed Applicant"}</strong> — ${app.title || "Untitled Project"}</span>
+          <span>▼</span>
         `;
-        container.appendChild(div);
+
+        const content = document.createElement("div");
+        content.className = "accordion-content";
+
+        const pre = document.createElement("pre");
+        pre.textContent = JSON.stringify(app, null, 2);
+        content.appendChild(pre);
+
+        summary.addEventListener("click", () => {
+          content.classList.toggle("open");
+          const arrow = summary.querySelector("span:last-child");
+          arrow.textContent = content.classList.contains("open") ? "▲" : "▼";
+        });
+
+        wrapper.appendChild(summary);
+        wrapper.appendChild(content);
+        container.appendChild(wrapper);
       });
     }
+
+    function loadApplications() {
+      applications = JSON.parse(localStorage.getItem("applications") || "[]");
+      return applications.filter(app => app.orgId === orgId);
+    }
+
+    async function init() {
+      await loadOrgs();
+      const org = orgs.find(o => o.id === orgId) || orgs[0];
+      renderOrgHeader(org);
+
+      const filteredApps = loadApplications();
+      renderApplications(filteredApps);
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
   </script>
 </body>
 </html>

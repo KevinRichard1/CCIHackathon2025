@@ -1,99 +1,243 @@
-(() => {
-  const form = document.getElementById('grantForm');
-  const preview = document.getElementById('preview');
+let orgs = [];
+let currentOrgId = null;
 
-  const STORAGE_KEY = 'grant_app_submissions_v2';
+async function loadOrgs() {
+  const res = await fetch("orgs.json");
+  orgs = await res.json();
+  if (orgs.length > 0) {
+    currentOrgId = orgs[0].id;
+  }
+}
 
-  function parseFormData(formEl) {
-    const fd = new FormData(formEl);
+function createInputField(field) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "form-group";
 
-    const getFileName = (inputName) => {
-      const file = fd.get(inputName);
-      return file && file.name ? file.name : null;
-    };
+  const label = document.createElement("label");
+  label.htmlFor = field.name;
+  label.textContent = field.label + (field.required ? " *" : "");
+  wrapper.appendChild(label);
 
-    return {
-      id: generateId(),
-      submittedAt: new Date().toISOString(),
-      applicant: {
-        name: fd.get('applicantName'),
-        email: fd.get('email'),
-        phone: fd.get('phone'),
-      },
-      organization: {
-        name: fd.get('organizationName'),
-        type: fd.get('organizationType'),
-        website: fd.get('organizationWebsite'),
-        taxId: fd.get('organizationTaxId'),
-      },
-      grant: {
-        id: fd.get('grantId'),
-        title: fd.get('grantTitle'),
-        amountRequested: parseFloat(fd.get('amountRequested')),
-        matchRequired: fd.get('matchRequired') === 'true',
-        startDate: fd.get('startDate') || null,
-        endDate: fd.get('endDate') || null,
-      },
-      project: {
-        executiveSummary: fd.get('executiveSummary'),
-        statementOfNeed: fd.get('statementOfNeed'),
-        goals: fd.get('projectGoals'),
-        implementationPlan: fd.get('implementationPlan'),
-        evaluationPlan: fd.get('evaluationPlan'),
-      },
-      budget: {
-        total: parseFloat(fd.get('totalBudget')) || null,
-        justification: fd.get('budgetJustification'),
-      },
-      attachments: {
-        proposalFile: getFileName('proposalFile'),
-        budgetFile: getFileName('budgetFile'),
-      },
-      certification: {
-        certified: fd.get('certify') === 'on',
-        signature: fd.get('signature'),
-        date: fd.get('signatureDate'),
-      },
-    };
+  let input;
+
+  switch(field.type) {
+    case "text":
+    case "email":
+    case "number":
+    case "date":
+      input = document.createElement("input");
+      input.type = field.type;
+      input.id = field.name;
+      input.name = field.name;
+      input.required = field.required || false;
+      break;
+    case "textarea":
+      input = document.createElement("textarea");
+      input.id = field.name;
+      input.name = field.name;
+      input.required = field.required || false;
+      break;
+    case "select":
+      input = document.createElement("select");
+      input.id = field.name;
+      input.name = field.name;
+      input.required = field.required || false;
+      field.options.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt;
+        option.textContent = opt;
+        input.appendChild(option);
+      });
+      break;
+    case "radio":
+      input = document.createElement("div");
+      field.options.forEach(opt => {
+        const radioWrapper = document.createElement("label");
+        radioWrapper.style.marginRight = "1rem";
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = field.name;
+        radio.value = opt;
+        radio.required = field.required || false;
+        radioWrapper.appendChild(radio);
+        radioWrapper.appendChild(document.createTextNode(opt));
+        input.appendChild(radioWrapper);
+      });
+      break;
+    default:
+      input = document.createElement("input");
+      input.type = "text";
+      input.id = field.name;
+      input.name = field.name;
   }
 
-  function generateId() {
-    return 'APP-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 6);
+  wrapper.appendChild(input);
+  return wrapper;
+}
+
+function renderOrgHeader(org) {
+  const container = document.getElementById("org-info");
+
+  // Extract initials for placeholder logo
+  const initials = org.name
+    .split(" ")
+    .map(word => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 3);
+
+  const logoHtml = org.logo
+    ? `<img src="${org.logo}" alt="${org.name} logo" class="org-logo" style="width:60px; height:60px; object-fit: contain; margin-right:1rem; border-radius: 8px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
+    : '';
+
+  const placeholderLogo = `
+    <div class="logo-placeholder" style="
+      width: 60px; height: 60px;
+      background-color: ${org.color};
+      border-radius: 50%;
+      color: white;
+      display: ${org.logo ? "none" : "flex"};
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+      margin-right: 1rem;
+      user-select:none;
+    ">
+      ${initials}
+    </div>
+  `;
+
+  container.innerHTML = `
+    <div class="org-banner" style="background-color:${org.color}; color:#fff; padding:1rem; border-radius:6px; display:flex; align-items:center;">
+      ${logoHtml}${placeholderLogo}
+      <div>
+        <h2>${org.name}</h2>
+        <p>${org.description}</p>
+      </div>
+    </div>
+  `;
+  document.body.style.setProperty('--primary-color', org.color);
+}
+
+function renderForm(org) {
+  const form = document.getElementById("grantApplicationForm");
+  form.innerHTML = ""; // Clear existing fields
+
+  // Common base fields
+  const baseFields = [
+    { label: "Project Title", name: "title", type: "text", required: true },
+    { label: "Applicant Name", name: "applicantName", type: "text", required: true },
+    { label: "Email Address", name: "email", type: "email", required: true },
+    { label: "Funding Amount Requested", name: "fundingAmount", type: "number", required: true },
+    { label: "Project Summary", name: "projectSummary", type: "textarea", required: true },
+    { label: "Project Start Date", name: "startDate", type: "date", required: true },
+    { label: "Project End Date", name: "endDate", type: "date", required: true },
+  ];
+
+  baseFields.forEach(field => {
+    form.appendChild(createInputField(field));
+  });
+
+  // Org-specific custom fields
+  if (org.customFields && org.customFields.length > 0) {
+    const hr = document.createElement("hr");
+    form.appendChild(hr);
+
+    const heading = document.createElement("h3");
+    heading.textContent = `Additional Questions for ${org.name}`;
+    form.appendChild(heading);
+
+    org.customFields.forEach(field => {
+      form.appendChild(createInputField(field));
+    });
   }
 
-  function readSubmissions() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  }
+  // Hidden input for orgId
+  const hiddenOrgId = document.createElement("input");
+  hiddenOrgId.type = "hidden";
+  hiddenOrgId.name = "orgId";
+  hiddenOrgId.value = org.id;
+  form.appendChild(hiddenOrgId);
 
-  function writeSubmissions(arr) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-  }
+  // Submit button
+  const submitBtn = document.createElement("button");
+  submitBtn.type = "submit";
+  submitBtn.textContent = "Submit Application";
+  form.appendChild(submitBtn);
+}
 
-  function showPreview(data) {
-    preview.textContent = JSON.stringify(data, null, 2);
-  }
+function populateOrgSelector() {
+  const select = document.getElementById("orgSelect");
+  orgs.forEach(org => {
+    const option = document.createElement("option");
+    option.value = org.id;
+    option.textContent = org.name;
+    select.appendChild(option);
+  });
+  select.value = currentOrgId;
+  select.addEventListener("change", (e) => {
+    currentOrgId = e.target.value;
+    const org = orgs.find(o => o.id === currentOrgId);
+    renderForm(org);
+    renderOrgHeader(org);
+    document.getElementById("formMessage").textContent = "";
+  });
+}
 
-  function sendSuccessMessage(data) {
-    const message = {
-      status: "success",
-      message: "Application submitted successfully.",
-      id: data.id,
-      timestamp: data.submittedAt,
-    };
-    window.parent?.postMessage(message, "*");
-    console.log("✅ Submission:", message);
-  }
+function saveApplication(data) {
+  let storedApps = JSON.parse(localStorage.getItem("applications") || "[]");
+  storedApps.push(data);
+  localStorage.setItem("applications", JSON.stringify(storedApps));
+}
 
-  form?.addEventListener('submit', (e) => {
+function collectFormData(form) {
+  const formData = new FormData(form);
+  const data = {};
+  for (const [key, value] of formData.entries()) {
+    if (data[key]) {
+      // Handle multiple values (e.g. checkboxes)
+      if (Array.isArray(data[key])) {
+        data[key].push(value);
+      } else {
+        data[key] = [data[key], value];
+      }
+    } else {
+      data[key] = value;
+    }
+  }
+  return data;
+}
+
+async function init() {
+  await loadOrgs();
+  populateOrgSelector();
+  const org = orgs.find(o => o.id === currentOrgId);
+  renderForm(org);
+  renderOrgHeader(org);
+
+  document.getElementById("grantApplicationForm").addEventListener("submit", e => {
     e.preventDefault();
-    const data = parseFormData(form);
-    const all = readSubmissions();
-    all.push(data);
-    writeSubmissions(all);
-    showPreview(data);
-    sendSuccessMessage(data);
-    alert('✅ Application submitted and saved locally.');
+    const form = e.target;
+    const data = collectFormData(form);
+
+    // Add timestamp as ID
+    data.id = Date.now();
+    data.orgId = org.id;
+
+    saveApplication(data);
+
+    document.getElementById("formMessage").innerHTML = `
+      <div class="success-message">
+        <strong>✅ Application submitted successfully!</strong><br>
+        <a href="viewer.html?orgId=${org.id}" target="_blank">
+          → View submitted applications for ${org.name}
+        </a>
+      </div>
+    `;
+
     form.reset();
   });
-})();
+}
+
+window.addEventListener("DOMContentLoaded", init);

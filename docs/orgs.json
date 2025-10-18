@@ -1,0 +1,108 @@
+[
+  {
+    "id": "org001",
+    "name": "Health & Research Foundation",
+    "color": "#2E86AB",
+    "logo": "",  
+    "description": "Funding groundbreaking medical research.",
+    "formStyle": "health",
+    "customFields": [
+      {
+        "label": "Do you have IRB approval?",
+        "name": "irbApproval",
+        "type": "radio",
+        "options": ["Yes", "No"],
+        "required": true
+      },
+      {
+        "label": "Number of clinical trial participants",
+        "name": "clinicalTrialParticipants",
+        "type": "number",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "org002",
+    "name": "Arts & Culture Trust",
+    "color": "#B83B5E",
+    "logo": "",
+    "description": "Supporting arts and cultural initiatives worldwide.",
+    "formStyle": "arts",
+    "customFields": [
+      {
+        "label": "Type of artistic medium",
+        "name": "artMedium",
+        "type": "select",
+        "options": ["Visual Arts", "Performing Arts", "Literature", "Music", "Film"],
+        "required": true
+      },
+      {
+        "label": "Project duration (months)",
+        "name": "projectDuration",
+        "type": "number",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "org003",
+    "name": "Environmental Action Network",
+    "color": "#27AE60",
+    "logo": "",
+    "description": "Promoting environmental conservation and sustainability projects.",
+    "formStyle": "environment",
+    "customFields": [
+      {
+        "label": "Project Impact Area",
+        "name": "impactArea",
+        "type": "select",
+        "options": ["Climate Change", "Biodiversity", "Water Conservation", "Renewable Energy"],
+        "required": true
+      },
+      {
+        "label": "Is this a community-led project?",
+        "name": "communityLed",
+        "type": "radio",
+        "options": ["Yes", "No"],
+        "required": true
+      },
+      {
+        "label": "Estimated carbon footprint reduction (tons/year)",
+        "name": "carbonReduction",
+        "type": "number",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "org004",
+    "name": "Tech Innovation Fund",
+    "color": "#F39C12",
+    "logo": "",
+    "description": "Supporting startups and projects pushing technology boundaries.",
+    "formStyle": "tech",
+    "customFields": [
+      {
+        "label": "Type of technology",
+        "name": "technologyType",
+        "type": "select",
+        "options": ["AI/ML", "Blockchain", "IoT", "Biotech", "Cybersecurity"],
+        "required": true
+      },
+      {
+        "label": "Stage of startup",
+        "name": "startupStage",
+        "type": "select",
+        "options": ["Idea", "Prototype", "Pilot", "Growth"],
+        "required": true
+      },
+      {
+        "label": "Number of employees",
+        "name": "employeeCount",
+        "type": "number",
+        "required": false
+      }
+    ]
+  }
+]
