@@ -1,0 +1,43 @@
+{
+  "first_name": "Alice",
+  "last_name": "Smith",
+  "email": "alice.smith@example.com",
+  "phone_number": "555-123-4567",
+  "organization_name": "Smith Arts Collective",
+  "organization_type": "Nonprofit",
+  "organization_website": "https://smithartscollective.example.com",
+  "address": {
+    "street": "123 Main St",
+    "city": "New York",
+    "state": "NY",
+    "zip_code": "10001",
+    "country": "USA"
+  },
+  "project_title": "Community Mural Project",
+  "project_description": "Creating a mural that celebrates diversity and inclusion in the local community.",
+  "project_start_date": "2025-10-01",
+  "project_end_date": "2026-03-31",
+  "funding_requested": "50000",
+  "project_goals": [
+    "Promote community engagement through public art",
+    "Highlight underrepresented voices in local culture",
+    "Provide arts education opportunities for youth"
+  ],
+  "team_members": [
+    {
+      "name": "Alice Smith",
+      "role": "Project Lead",
+      "email": "alice.smith@example.com"
+    },
+    {
+      "name": "John Doe",
+      "role": "Artist",
+      "email": "john.doe@example.com"
+    }
+  ],
+  "attachments": {
+    "budget_document": "budget.pdf",
+    "supporting_materials": ["portfolio.pdf", "letters_of_support.pdf"]
+  },
+  "additional_info": "We have local partnerships with schools and libraries to expand community reach."
+}
