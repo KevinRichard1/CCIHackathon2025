@@ -1,31 +1,34 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
-
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useTheme } from "@react-navigation/native";
+import { StyleSheet, Text, type TextProps } from "react-native";
 
 export type ThemedTextProps = TextProps & {
-  lightColor?: string;
-  darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?: "heading" | "subheading" | "body" | "label" | "subtle" | "link";
 };
 
-export function ThemedText({
-  style,
-  lightColor,
-  darkColor,
-  type = 'default',
-  ...rest
-}: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+export function ThemedText({ style, type = "body", ...rest }: ThemedTextProps) {
+  const theme = useTheme() as any;
+  const colors = theme.colors;
+  const typography = theme.typography ?? {}; // our custom map
+
+  const familyByType: Record<NonNullable<ThemedTextProps["type"]>, string> = {
+    heading: typography.heading,
+    subheading: typography.subheading,
+    body: typography.body,
+    label: typography.label,
+    subtle: typography.subtle,
+    link: typography.label, // links use label family, colored below
+  };
 
   return (
     <Text
       style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        { color: colors.text, fontFamily: familyByType[type] },
+        type === "heading" && styles.heading,
+        type === "subheading" && styles.subheading,
+        type === "label" && styles.label,
+        type === "body" && styles.body,
+        type === "subtle" && styles.subtle,
+        type === "link" && [{ color: colors.primary }, styles.link],
         style,
       ]}
       {...rest}
@@ -34,27 +37,10 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
-  },
+  heading: { fontSize: 24, lineHeight: 34 },
+  subheading: { fontSize: 20, lineHeight: 28 },
+  body: { fontSize: 16, lineHeight: 22 },
+  label: { fontSize: 16, lineHeight: 20 },
+  subtle: { fontSize: 14, opacity: 0.7, lineHeight: 20 },
+  link: { textDecorationLine: "underline" },
 });
